@@ -1,0 +1,84 @@
+---
+- hosts: localhost
+  become: yes
+  vars:
+    timescaledb_user: <your_timescale_user>
+    timescaledb_superuser: <postgres_user>
+    timescaledb_password: <timescale_password>
+    timescaledb_database: <timescale_db>
+    timescaledb_host: <timescale_host>
+    timescaledb_port: <timescale_port>
+
+  pre_tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - python3-psycopg2
+          - python3-pip
+        state: present
+
+    - name: Install community.postgresql collection
+      pip:
+        name: community.postgresql
+        state: present
+
+  tasks:
+
+    - name: Drop table if exists
+      become_user: "{{ timescaledb_superuser }}"
+      postgresql_table:
+        name: conditions
+        state: absent
+        db: "{{ timescaledb_database }}"
+        login_host: "{{ timescaledb_host }}"
+        login_port: "{{ timescaledb_port }}"
+        login_user: "{{ timescaledb_user }}"
+        login_password: "{{ timescaledb_password }}"
+
+    - name: Create a Postgres Table and convert to Hypertable
+      become_user: "{{ timescaledb_superuser }}"
+      postgresql_query:
+        query: |
+          CREATE TABLE conditions (
+            time TIMESTAMPTZ NOT NULL,
+            location TEXT NOT NULL,
+            temperature DOUBLE PRECISION,
+            humidity DOUBLE PRECISION
+          );
+
+          SELECT create_hypertable('conditions', 'time');
+        db: "{{ timescaledb_database }}"
+        login_host: "{{ timescaledb_host }}"
+        login_port: "{{ timescaledb_port }}"
+        login_user: "{{ timescaledb_user }}"
+        login_password: "{{ timescaledb_password }}"
+
+    - name: Insert data into the Hypertable
+      become_user: "{{ timescaledb_superuser }}"
+      postgresql_query:
+        query: |
+          INSERT INTO conditions (time, location, temperature, humidity)
+          VALUES
+            (NOW() - INTERVAL '1 hour', 'Office', 72.1, 41.3),
+            (NOW() - INTERVAL '2 hours', 'Office', 71.8, 43.1),
+            (NOW(), 'Office', 72.5, 42.8);
+        db: "{{ timescaledb_database }}"
+        login_host: "{{ timescaledb_host }}"
+        login_port: "{{ timescaledb_port }}"
+        login_user: "{{ timescaledb_user }}"
+        login_password: "{{ timescaledb_password }}"
+
+    - name: Query the Hypertable
+      become_user: "{{ timescaledb_superuser }}"
+      postgresql_query:
+        query: SELECT * FROM conditions
+        db: "{{ timescaledb_database }}"
+        login_host: "{{ timescaledb_host }}"
+        login_port: "{{ timescaledb_port }}"
+        login_user: "{{ timescaledb_user }}"
+        login_password: "{{ timescaledb_password }}"
+      register: query_result
+
+    - name: Display query result
+      debug:
+        msg: "{{ query_result.query_result }}"
