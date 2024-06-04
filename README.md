@@ -10,8 +10,8 @@ TimescaleDB is a powerful time-series database built on top of PostgreSQL. It of
 Installation
 To use the resources in this repository, you'll need to have TimescaleDB installed on your system or in the Cloud. Follow the official installation guide for your operating system: TimescaleDB Installation Once TimescaleDB is installed, clone this repository to your local machine:
 
-bash
-git clone https://github.com/your-username/timescaledb-scripts-tools.git
+https://github.com/illustris-admin/timescale
+git clone https://github.com/illustris-admin/timescale
 
 Contributing
 Contributions to this repository are welcome! If you have any scripts, tools, or code related to TimescaleDB that you'd like to share, please follow these steps:
