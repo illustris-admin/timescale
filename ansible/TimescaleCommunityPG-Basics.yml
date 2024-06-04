@@ -1,5 +1,6 @@
 ---
 - hosts: localhost
+  gather_facts: false
   become: yes
   vars:
     timescaledb_user: <your_timescale_user>
@@ -17,10 +18,10 @@
           - python3-pip
         state: present
 
-    - name: Install community.postgresql collection
-      pip:
-        name: community.postgresql
-        state: present
+#    - name: Install community.postgresql collection
+#      pip:
+#        name: community.postgresql
+#        state: present
 
   tasks:
 
